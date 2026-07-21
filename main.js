@@ -1207,6 +1207,43 @@ function handleKeyboardShortcuts(e) {
     }
 }
 
+// تعريف العناصر
+const centerPlayPauseBtn = document.getElementById('center-play-pause-btn');
+const centerRewindBtn = document.getElementById('center-rewind-btn');
+const centerForwardBtn = document.getElementById('center-forward-btn');
+const videoWrapper = document.getElementById('video-wrapper');
+const mainVideo = document.getElementById('main-video');
+
+// زر التشغيل والإيقاف في المنتصف
+centerPlayPauseBtn.addEventListener('click', () => {
+    if (mainVideo.paused) {
+        mainVideo.play();
+    } else {
+        mainVideo.pause();
+    }
+});
+
+// تحديث شكل الأيقونة وحالة الحاوية عند التشغيل أو الإيقاف
+mainVideo.addEventListener('play', () => {
+    centerPlayPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    videoWrapper.classList.remove('paused');
+});
+
+mainVideo.addEventListener('pause', () => {
+    centerPlayPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    videoWrapper.classList.add('paused');
+});
+
+// زر الترجيع ١٠ ثوانٍ
+centerRewindBtn.addEventListener('click', () => {
+    mainVideo.currentTime = Math.max(0, mainVideo.currentTime - 10);
+});
+
+// زر التقديم ١٠ ثوانٍ
+centerForwardBtn.addEventListener('click', () => {
+    mainVideo.currentTime = Math.min(mainVideo.duration, mainVideo.currentTime + 10);
+});
+        
 /* ===========================
    Utility Helpers
    =========================== */

@@ -1,0 +1,368 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="red">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Local Player</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-left">
+            <button id="menu-toggle" class="icon-btn" title="Guide"><i class="fa-solid fa-bars"></i></button>
+            <div class="logo">
+                <i class="fa-brands fa-youtube logo-icon"></i>
+                <span class="logo-text">LocalTube</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search imported videos..." autocomplete="off">
+                <button id="search-btn" class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button id="import-btn" class="action-chip" title="Choose Video/Folder"><i class="fa-solid fa-plus"></i> Import</button>
+            <button id="settings-toggle" class="icon-btn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+            <button id="shortcut-help-btn" class="icon-btn" title="Keyboard Shortcuts (?)"><i class="fa-solid fa-circle-question"></i></button>
+        </div>
+    </header>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="file-picker" accept="video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo" multiple style="display: none;">
+    <input type="file" id="folder-picker" webkitdirectory directory multiple style="display: none;">
+    <input type="file" id="subtitle-picker" accept=".vtt,.srt" style="display: none;">
+
+    <!-- Main Content Grid Layout -->
+    <div class="app-layout">
+        <!-- Left Side: Player & Info -->
+        <main class="main-content">
+            <!-- Player Wrapper -->
+            <div class="player-container" id="player-container">
+                <div class="video-wrapper" id="video-wrapper">
+                    <video id="main-video" crossorigin="anonymous"></video>
+                    <canvas id="thumbnail-canvas" style="display: none;"></canvas>
+                    
+                    <!-- Subtitles Overlay -->
+                    <div id="subtitle-display" class="subtitle-display"></div>
+
+                    <!-- Filter Canvas/Wrapper Effect overlay -->
+                    <div class="filter-overlay" id="filter-overlay"></div>
+
+                    <!-- Custom Controls Overlay -->
+                    <div class="controls-overlay" id="controls-overlay">
+                        <!-- Timeline Bar -->
+                        <div class="timeline-container" id="timeline-container">
+                            <div class="timeline-tooltip" id="timeline-tooltip">
+                                <canvas id="preview-canvas" width="160" height="90"></canvas>
+                                <span id="tooltip-time">0:00</span>
+                            </div>
+                            <div class="timeline" id="timeline">
+                                <div class="buffered-progress" id="buffered-progress"></div>
+                                <div class="played-progress" id="played-progress">
+                                    <div class="thumb-indicator"></div>
+                                </div>
+                                <!-- Bookmarks & A-B markers will inject here -->
+                                <div id="markers-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Control Toolbar -->
+                        <div class="controls-bottom">
+                            <div class="controls-left">
+                                <button id="play-pause-btn" class="control-btn" title="Play (k)"><i class="fa-solid fa-play"></i></button>
+                                <button id="next-btn" class="control-btn" title="Next Video"><i class="fa-solid fa-forward-step"></i></button>
+                                <div class="volume-container">
+                                    <button id="mute-btn" class="control-btn" title="Mute (m)"><i class="fa-solid fa-volume-high"></i></button>
+                                    <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1">
+                                </div>
+                                <div class="time-display">
+                                    <span id="current-time">0:00</span> / <span id="total-duration">0:00</span>
+                                </div>
+                            </div>
+                            <div class="controls-right">
+                                <!-- Extra Custom Player Feature Toggles -->
+                                <button id="ab-loop-btn" class="control-btn" title="Set A-B Loop"><i class="fa-solid fa-repeat"></i></button>
+                                <button id="filters-btn" class="control-btn" title="Video Filters"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                <button id="bookmark-add-btn" class="control-btn" title="Add Bookmark"><i class="fa-solid fa-bookmark"></i></button>
+                                <button id="subtitles-toggle-btn" class="control-btn" title="Toggle Subtitles"><i class="fa-solid fa-closed-captioning"></i></button>
+                                <button id="screenshot-btn" class="control-btn" title="Take Screenshot"><i class="fa-solid fa-camera"></i></button>
+                                <button id="speed-btn" class="control-btn" title="Playback Speed">1x</button>
+                                <button id="mini-player-btn" class="control-btn" title="Miniplayer (i)"><i class="fa-solid fa-film"></i></button>
+                                <button id="theater-btn" class="control-btn" title="Theater Mode (t)"><i class="fa-solid fa-rectangle-wide"></i></button>
+                                <button id="pip-btn" class="control-btn" title="Picture in Picture"><i class="fa-solid fa-clone"></i></button>
+                                <button id="fullscreen-btn" class="control-btn" title="Fullscreen (f)"><i class="fa-solid fa-expand"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Information Section -->
+            <div class="video-info-section">
+                <h1 id="video-title-heading" class="video-title">No Video Selected</h1>
+                <div class="video-metadata-bar">
+                    <div class="video-stats">
+                        <span id="video-views">0 views</span> • <span id="video-date">Imported on -</span>
+                    </div>
+                    <div class="video-actions">
+                        <div class="like-dislike-group">
+                            <button id="like-btn" class="action-btn"><i class="fa-solid fa-thumbs-up"></i> <span id="like-count">124</span></button>
+                            <span class="divider-vertical"></span>
+                            <button id="dislike-btn" class="action-btn"><i class="fa-solid fa-thumbs-down"></i></button>
+                        </div>
+                        <button id="share-btn" class="action-btn"><i class="fa-solid fa-share"></i> Share</button>
+                        <button id="download-btn" class="action-btn"><i class="fa-solid fa-download"></i> Download</button>
+                        <button id="save-playlist-modal-btn" class="action-btn"><i class="fa-solid fa-folder-plus"></i> Save</button>
+                    </div>
+                </div>
+
+                <!-- Collapsible Description Box -->
+                <div class="video-description-box" id="desc-box">
+                    <div class="desc-content" id="desc-content">
+                        Import videos via the top right button or drag and drop files/folders directly into the interface. Enjoy buttery smooth local video playback complete with bookmarks, custom styling, filters, subtitles, and playlists!
+                    </div>
+                    <button id="desc-toggle-btn" class="desc-toggle">Show more</button>
+                </div>
+            </div>
+
+            <!-- Bookmarks Panel Component -->
+            <div class="bookmarks-section card-box">
+                <h3><i class="fa-solid fa-bookmark"></i> Video Bookmarks</h3>
+                <div id="bookmarks-list" class="bookmarks-list">
+                    <p class="empty-state-text">No bookmarks added yet. Press the bookmark icon on the control bar to add one.</p>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <div class="comments-header">
+                    <h3><span id="comments-count">0</span> Comments</h3>
+                    <div class="comments-sort">
+                        <label><i class="fa-solid fa-arrow-down-wide-short"></i> Sort by:</label>
+                        <select id="sort-comments-select">
+                            <option value="top">Top comments</option>
+                            <option value="newest">Newest first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="comment-input-area">
+                    <div class="user-avatar-placeholder"><i class="fa-solid fa-user"></i></div>
+                    <div class="comment-form">
+                        <input type="text" id="comment-input" placeholder="Add a comment...">
+                        <div class="comment-actions" id="comment-form-actions" style="display: none;">
+                            <button id="comment-cancel-btn" class="btn-text">Cancel</button>
+                            <button id="comment-submit-btn" class="btn-primary" disabled>Comment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comments-list" class="comments-list">
+                    <!-- Dynamic Comments -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Side: Recommended, History & Playlists Panels -->
+        <aside class="sidebar-panel">
+            <!-- Tabs Navigation -->
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="up-next">Up Next</button>
+                <button class="tab-btn" data-tab="playlists">Playlists</button>
+                <button class="tab-btn" data-tab="history">History</button>
+            </div>
+
+            <!-- Tab Content: Up Next / Recommended / Search Results -->
+            <div class="tab-pane active" id="tab-up-next">
+                <div class="playlist-queue-header">
+                    <span>Queue / Library</span>
+                    <button id="clear-library-btn" class="btn-text-sm">Clear All</button>
+                </div>
+                <div class="drag-drop-dropzone" id="dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Drag & Drop videos or folders here</p>
+                </div>
+                <div id="video-queue-list" class="video-queue-list">
+                    <!-- Dynamic video items -->
+                </div>
+            </div>
+
+            <!-- Tab Content: Playlists -->
+            <div class="tab-pane" id="tab-playlists">
+                <div class="playlist-create-box">
+                    <input type="text" id="new-playlist-name" placeholder="New playlist title...">
+                    <button id="create-playlist-btn" class="btn-primary">Create</button>
+                </div>
+                <div id="playlists-container" class="playlists-container">
+                    <!-- Dynamic Playlists -->
+                </div>
+            </div>
+
+            <!-- Tab Content: History & Continue Watching -->
+            <div class="tab-pane" id="tab-history">
+                <div class="playlist-queue-header">
+                    <span>Continue Watching</span>
+                    <button id="clear-history-btn" class="btn-text-sm">Clear History</button>
+                </div>
+                <div id="continue-watching-list" class="mini-video-list"></div>
+                <div class="playlist-queue-header" style="margin-top: 15px;">
+                    <span>Watch History</span>
+                </div>
+                <div id="history-list" class="mini-video-list"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modals & Overlays -->
+
+    <!-- Speed Selection Menu Popover -->
+    <div id="speed-menu" class="popover-menu" style="display: none;">
+        <div class="popover-header">Playback Speed</div>
+        <div class="popover-items" id="speed-items">
+            <div data-speed="0.25">0.25x</div>
+            <div data-speed="0.5">0.5x</div>
+            <div data-speed="0.75">0.75x</div>
+            <div data-speed="1" class="selected">Normal (1x)</div>
+            <div data-speed="1.25">1.25x</div>
+            <div data-speed="1.5">1.5x</div>
+            <div data-speed="1.75">1.75x</div>
+            <div data-speed="2">2x</div>
+        </div>
+    </div>
+
+    <!-- Video Filters Modal -->
+    <div id="filters-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Video Color & Filters</h3>
+                <button class="modal-close" id="close-filters-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-slider-group">
+                    <label>Brightness: <span id="val-brightness">100</span>%</label>
+                    <input type="range" id="filter-brightness" min="0" max="200" value="100">
+                </div>
+                <div class="filter-slider-group">
+                    <label>Contrast: <span id="val-contrast">100</span>%</label>
+                    <input type="range" id="filter-contrast" min="0" max="200" value="100">
+                </div>
+                <div class="filter-slider-group">
+                    <label>Saturation: <span id="val-saturation">100</span>%</label>
+                    <input type="range" id="filter-saturation" min="0" max="200" value="100">
+                </div>
+                <div class="filter-slider-group">
+                    <label>Blur: <span id="val-blur">0</span>px</label>
+                    <input type="range" id="filter-blur" min="0" max="20" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="reset-filters-btn" class="btn-text">Reset Filters</button>
+                <button id="apply-filters-btn" class="btn-primary">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save to Playlist Modal -->
+    <div id="playlist-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Save video to...</h3>
+                <button class="modal-close" id="close-playlist-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-playlists-list" class="modal-playlists-list">
+                    <!-- Checkboxes for playlists -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear"></i> Player Settings & Preferences</h3>
+                <button class="modal-close" id="close-settings-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body settings-grid">
+                <div class="setting-item">
+                    <label>Theme</label>
+                    <select id="setting-theme">
+                        <option value="dark">Dark Theme</option>
+                        <option value="light">Light Theme</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Accent Color</label>
+                    <select id="setting-accent">
+                        <option value="red">YouTube Red</option>
+                        <option value="blue">Electric Blue</option>
+                        <option value="green">Emerald Green</option>
+                        <option value="purple">Neon Purple</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Auto Play Next</label>
+                    <input type="checkbox" id="setting-autoplay" checked>
+                </div>
+                <div class="setting-item">
+                    <label>Loop Video</label>
+                    <input type="checkbox" id="setting-loop">
+                </div>
+                <div class="setting-item">
+                    <label>Remember Last Position</label>
+                    <input type="checkbox" id="setting-remember-pos" checked>
+                </div>
+                <div class="setting-item">
+                    <label>Subtitle Size</label>
+                    <select id="setting-sub-size">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Subtitle Background</label>
+                    <select id="setting-sub-bg">
+                        <option value="transparent">Transparent</option>
+                        <option value="semi" selected>Semi-opaque</option>
+                        <option value="solid">Solid Black</option>
+                    </select>
+                </div>
+                <div class="setting-item full-width">
+                    <button id="import-subtitle-file-btn" class="btn-secondary"><i class="fa-solid fa-closed-captioning"></i> Import Subtitle File (.srt / .vtt)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Overlay Help -->
+    <div id="shortcut-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts</h3>
+                <button class="modal-close" id="close-shortcut-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body shortcuts-list">
+                <div class="shortcut-row"><span>Play / Pause</span><kbd>Space</kbd> / <kbd>K</kbd></div>
+                <div class="shortcut-row"><span>Rewind 10s</span><kbd>J</kbd> / <kbd>Arrow Left</kbd></div>
+                <div class="shortcut-row"><span>Fast Forward 10s</span><kbd>L</kbd> / <kbd>Arrow Right</kbd></div>
+                <div class="shortcut-row"><span>Volume Up / Down</span><kbd>Arrow Up</kbd> / <kbd>Arrow Down</kbd></div>
+                <div class="shortcut-row"><span>Mute / Unmute</span><kbd>M</kbd></div>
+                <div class="shortcut-row"><span>Fullscreen</span><kbd>F</kbd></div>
+                <div class="shortcut-row"><span>Theater Mode</span><kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Mini Player</span><kbd>I</kbd></div>
+                <div class="shortcut-row"><span>Toggle Subtitles</span><kbd>C</kbd></div>
+                <div class="shortcut-row"><span>Show Shortcuts</span><kbd>?</kbd></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Script -->
+    <script src="main.js"></script>
+</body>
+</html>

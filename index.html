@@ -43,6 +43,13 @@
             <!-- Player Wrapper -->
             <div class="player-container" id="player-container">
                 <div class="video-wrapper" id="video-wrapper">
+                    <!-- Center Play / Skip Overlay Controls -->
+<div class="center-overlay-controls" id="center-overlay-controls">
+    <button id="center-rewind-btn" class="center-control-btn" title="Rewind 10s"><i class="fa-solid fa-rotate-left"></i><span>10</span></button>
+    <button id="center-play-pause-btn" class="center-control-btn main-center-btn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+    <button id="center-forward-btn" class="center-control-btn" title="Fast Forward 10s"><span>10</span><i class="fa-solid fa-rotate-right"></i></button>
+</div>
+                    
                     <video id="main-video" crossorigin="anonymous"></video>
                     <canvas id="thumbnail-canvas" style="display: none;"></canvas>
                     

@@ -1095,6 +1095,69 @@ body.mini-player-mode .app-layout {
     grid-template-columns: 1fr;
     padding: 0;
 }
+/* حاوية أزرار المنتصف فوق الفيديو */
+.center-overlay-controls {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* إظهار الأزرار عند الوقوف بالماوس أو إيقاف الفيديو */
+.video-wrapper:hover .center-overlay-controls,
+.video-wrapper.paused .center-overlay-controls {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* شكل أزرار المنتصف */
+.center-control-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    position: relative;
+}
+
+.center-control-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+/* الزر الرئيسي (التشغيل والإيقاف) يكون أكبر حجماً */
+.center-control-btn.main-center-btn {
+    width: 70px;
+    height: 70px;
+    font-size: 26px;
+    background: rgba(204, 0, 0, 0.8); /* لون مميز، يمكنك تغييره حسب الرغبة */
+}
+
+.center-control-btn.main-center-btn:hover {
+    background: rgba(204, 0, 0, 1);
+}
+
+/* تنسيق نص الرقم ١٠ داخل أزرار التقديم والتأخير */
+.center-control-btn span {
+    position: absolute;
+    font-size: 10px;
+    font-weight: bold;
+    }
+
 
 body.mini-player-mode .player-container {
     position: fixed;
